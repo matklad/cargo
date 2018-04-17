@@ -53,6 +53,7 @@ termcolor = "0.3"
 toml = "0.4"
 url = "1.1"
 clap = "2.31.2"
+bincode = "1"
 
 # Not actually needed right now but required to make sure that rls/cargo build
 # with the same set of features in rust-lang/rust
@@ -90,3 +91,6 @@ bufstream = "0.1"
 name = "cargo"
 test = false
 doc = false
+
+[profile.release]
+debug = true

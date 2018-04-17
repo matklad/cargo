@@ -5,6 +5,7 @@
 #![cfg_attr(feature = "cargo-clippy", allow(explicit_iter_loop))]
 
 extern crate atty;
+extern crate bincode;
 extern crate clap;
 #[cfg(target_os = "macos")]
 extern crate core_foundation;

@@ -210,7 +210,7 @@ pub struct RegistryConfig {
     pub api: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct RegistryPackage<'a> {
     name: Cow<'a, str>,
     vers: Version,
@@ -233,7 +233,7 @@ enum Field {
     Links,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct RegistryDependency<'a> {
     name: Cow<'a, str>,
     req: Cow<'a, str>,

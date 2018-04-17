@@ -1,23 +1,78 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::str;
+use std::borrow::Cow;
 
 use serde_json;
 use semver::Version;
+use bincode;
 
-use core::dependency::Dependency;
+use core::dependency::{Dependency, Kind};
 use core::{PackageId, SourceId, Summary};
 use sources::registry::{RegistryPackage, INDEX_LOCK};
 use sources::registry::RegistryData;
 use util::{internal, CargoResult, Config, Filesystem};
+use sources::registry::RegistryDependency;
+use util::paths;
+use util::profile;
 
 pub struct RegistryIndex<'cfg> {
     source_id: SourceId,
     path: Filesystem,
     cache: HashMap<String, Vec<(Summary, bool)>>,
-    hashes: HashMap<String, HashMap<Version, String>>, // (name, vers) => cksum
+    hashes: HashMap<String, HashMap<Version, String>>,
+    // (name, vers) => cksum
     config: &'cfg Config,
     locked: bool,
+}
+
+fn loc() -> &'static Path {
+    Path::new("/tmp/foo.bincode")
+}
+
+impl<'cfg> Drop for RegistryIndex<'cfg> {
+    fn drop(&mut self) {
+        let _p = profile::start("saving registry");
+
+        let cache: HashMap<&str, Vec<RegistryPackage>> = self.cache.iter().map(|(k, summs)| {
+            let pkgs = summs.iter().map(|&(ref s, yanked)| RegistryPackage {
+                name: Cow::from(s.name().as_str()),
+                vers: s.version().clone(),
+                deps: s.dependencies().iter().map(|dep| {
+                    RegistryDependency {
+                        name: Cow::from(dep.name().as_str()),
+                        req: Cow::from(dep.version_req().clone().to_string()),
+                        features: dep.features().iter().map(|f| f.as_str().to_string()).collect(),
+                        optional: dep.is_optional(),
+                        default_features: dep.uses_default_features(),
+                        target: dep.platform().map(|p| Cow::from(p.to_string())),
+                        kind: match dep.kind() {
+                            Kind::Normal => None,
+                            Kind::Development => Some(Cow::from("dev")),
+                            Kind::Build => Some(Cow::from("build")),
+                        },
+                        registry: if dep.source_id().is_registry() {
+                            Some(dep.source_id().url().to_string())
+                        } else {
+                            None
+                        },
+                    }
+                }).collect(),
+                features: s.features().iter()
+                    .map(|(k, v)| (k.clone(), v.iter().map(|f| f.to_string()).collect()))
+                    .collect(),
+                cksum: s.checksum().unwrap().to_string(),
+                yanked: if yanked { Some(true) } else { None },
+                links: s.links().map(|s| s.as_str().to_string()),
+            });
+            (k.as_str(), pkgs.collect())
+        }).collect();
+        let data = (cache, &self.hashes);
+        let data = bincode::serialize(&data).unwrap();
+        let loc = loc();
+
+        paths::write(loc, &data).unwrap();
+    }
 }
 
 impl<'cfg> RegistryIndex<'cfg> {
@@ -27,11 +82,42 @@ impl<'cfg> RegistryIndex<'cfg> {
         config: &'cfg Config,
         locked: bool,
     ) -> RegistryIndex<'cfg> {
+        let loc = loc();
+        let (cache, hashes) = if loc.exists() {
+            let _p = profile::start("loading registry");
+            let data = paths::read_bytes(loc).unwrap();
+            let (cache, hashes): (HashMap<String, Vec<RegistryPackage>>, _)
+            = bincode::deserialize(&data).unwrap();
+
+            let cache = cache.into_iter().map(|(k, sums)| {
+                (k, sums.into_iter().map(|RegistryPackage {
+                                               name,
+                                               vers,
+                                               cksum,
+                                               deps,
+                                               features,
+                                               yanked,
+                                               links,
+                                           }| {
+                    let pkgid = PackageId::new(&name, &vers, &id).unwrap();
+                    let deps = deps.into_iter().map(|dep| dep.into_dep(&id).unwrap())
+                        .collect::<Vec<_>>();
+                    let summary = Summary::new(pkgid, deps, features, links).unwrap();
+                    let summary = summary.set_checksum(cksum.clone());
+                    (summary, yanked.unwrap_or(false))
+                }).collect())
+            }).collect();
+
+            (cache, hashes)
+        } else {
+            Default::default()
+        };
+
         RegistryIndex {
             source_id: id.clone(),
             path: path.clone(),
-            cache: HashMap::new(),
-            hashes: HashMap::new(),
+            cache,
+            hashes,
             config,
             locked,
         }
@@ -188,9 +274,9 @@ impl<'cfg> RegistryIndex<'cfg> {
                 let mut vers = p[dep.name().len() + 1..].splitn(2, "->");
                 if dep.version_req()
                     .matches(&Version::parse(vers.next().unwrap()).unwrap())
-                {
-                    vers.next().unwrap() == s.version().to_string()
-                } else {
+                    {
+                        vers.next().unwrap() == s.version().to_string()
+                    } else {
                     true
                 }
             }
