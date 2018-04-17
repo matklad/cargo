@@ -51,11 +51,7 @@ impl<'cfg> Drop for RegistryIndex<'cfg> {
                             Kind::Development => Some(Cow::from("dev")),
                             Kind::Build => Some(Cow::from("build")),
                         },
-                        registry: if dep.source_id().is_registry() {
-                            Some(dep.source_id().url().to_string())
-                        } else {
-                            None
-                        },
+                        registry: None,
                     }
                 }).collect(),
                 features: s.features().iter()
