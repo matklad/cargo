@@ -591,8 +591,7 @@ pub fn build_map<'b, 'cfg>(cx: &mut Context<'b, 'cfg>, units: &[Unit<'b>]) -> Ca
         // to rustc invocation caching schemes, so be sure to generate the same
         // set of build script dependency orderings via sorting the targets that
         // come out of the `Context`.
-        let mut targets = cx.dep_targets(unit);
-        targets.sort_by_key(|u| u.pkg.package_id());
+        let targets = cx.dep_targets(unit).sorted_by_key(|u| u.pkg.package_id());
 
         for unit in targets.iter() {
             let dep_scripts = build(out, cx, unit)?;

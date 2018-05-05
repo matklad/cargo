@@ -238,8 +238,8 @@ fn rustc_fingerprint(path: &Path, rustup_rustc: &Path) -> CargoResult<u64> {
 fn process_fingerprint(cmd: &ProcessBuilder) -> u64 {
     let mut hasher = SipHasher::new_with_keys(0, 0);
     cmd.get_args().hash(&mut hasher);
-    let mut env = cmd.get_envs().iter().collect::<Vec<_>>();
-    env.sort();
-    env.hash(&mut hasher);
+    cmd.get_envs().iter().collect::<Vec<_>>()
+        .sorted()
+        .hash(&mut hasher);
     hasher.finish()
 }

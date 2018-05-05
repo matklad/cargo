@@ -199,6 +199,7 @@ pub fn update_lockfile(ws: &Workspace, opts: &UpdateOptions) -> CargoResult<()> 
 
         for v in changes.values_mut() {
             let (ref mut old, ref mut new) = *v;
+            // no change
             old.sort();
             new.sort();
             let removed = vec_subtract(old, new);

@@ -295,8 +295,7 @@ fn env_args(
             // ordering through sorting for now. We may perhaps one day wish to
             // ensure a deterministic ordering via the order keys were defined
             // in files perhaps.
-            let mut cfgs = cfgs.collect::<Vec<_>>();
-            cfgs.sort();
+            let cfgs = cfgs.collect::<Vec<_>>().sorted();
 
             for n in cfgs {
                 let key = format!("target.{}.{}", n, name);

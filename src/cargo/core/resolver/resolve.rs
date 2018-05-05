@@ -192,9 +192,8 @@ unable to verify that `{0}` is the same as when the lockfile was generated
     }
 
     pub fn features_sorted(&self, pkg: &PackageId) -> Vec<&str> {
-        let mut v = Vec::from_iter(self.features(pkg).iter().map(|s| s.as_ref()));
-        v.sort();
-        v
+        Vec::from_iter(self.features(pkg).iter().map(|s| s.as_ref()))
+            .sorted()
     }
 
     pub fn query(&self, spec: &str) -> CargoResult<&PackageId> {

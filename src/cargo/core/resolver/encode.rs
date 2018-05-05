@@ -346,8 +346,7 @@ impl<'a, 'cfg> ser::Serialize for WorkspaceResolve<'a, 'cfg> {
     where
         S: ser::Serializer,
     {
-        let mut ids: Vec<_> = self.resolve.iter().collect();
-        ids.sort();
+        let ids: Vec<_> = self.resolve.iter().collect().sorted();
 
         let encodable = ids.iter()
             .filter_map(|&id| Some(encodable_resolve_node(id, self.resolve)))
@@ -396,11 +395,11 @@ fn encodable_resolve_node(id: &PackageId, resolve: &Resolve) -> EncodableDepende
     let (replace, deps) = match resolve.replacement(id) {
         Some(id) => (Some(encodable_package_id(id)), None),
         None => {
-            let mut deps = resolve
+            let deps = resolve
                 .deps_not_replaced(id)
                 .map(encodable_package_id)
-                .collect::<Vec<_>>();
-            deps.sort();
+                .collect::<Vec<_>>()
+                .sorted();
             (None, Some(deps))
         }
     };

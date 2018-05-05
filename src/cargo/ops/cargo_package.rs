@@ -51,6 +51,7 @@ pub fn package(ws: &Workspace, opts: &PackageOpts) -> CargoResult<Option<FileLoc
         if include_lockfile(pkg) {
             list.push("Cargo.lock".into());
         }
+        // no change
         list.sort();
         for file in list.iter() {
             println!("{}", file.display());

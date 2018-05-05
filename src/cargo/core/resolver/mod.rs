@@ -883,9 +883,10 @@ fn activation_error(
             .collect::<Vec<_>>()
             .join(", "));
 
-        let mut conflicting_activations: Vec<_> = conflicting_activations.iter().collect();
-        conflicting_activations.sort_unstable();
         let (links_errors, mut other_errors): (Vec<_>, Vec<_>) = conflicting_activations
+            .iter()
+            .collect::<Vec<_>>()
+            .sorted_unstable()
             .drain(..)
             .rev()
             .partition(|&(_, r)| r.is_links());
@@ -951,11 +952,10 @@ fn activation_error(
     let all_req = semver::VersionReq::parse("*").unwrap();
     let mut new_dep = dep.clone();
     new_dep.set_version_req(all_req);
-    let mut candidates = match registry.query_vec(&new_dep) {
-        Ok(candidates) => candidates,
+    let candidates = match registry.query_vec(&new_dep) {
+        Ok(candidates) => candidates.sorted_unstable_by(|a, b| b.version().cmp(a.version())),
         Err(e) => return e,
     };
-    candidates.sort_unstable_by(|a, b| b.version().cmp(a.version()));
 
     let mut msg = if !candidates.is_empty() {
         let versions = {

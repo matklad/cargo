@@ -518,14 +518,14 @@ where
             };
             return Ok((pkg.clone(), Box::new(source)));
 
-            fn multi_err(kind: &str, mut pkgs: Vec<&Package>) -> String {
-                pkgs.sort_by(|a, b| a.name().cmp(&b.name()));
+            fn multi_err(kind: &str, pkgs: Vec<&Package>) -> String {
                 format!(
                     "multiple packages with {} found: {}",
                     kind,
                     pkgs.iter()
                         .map(|p| p.name().as_str())
                         .collect::<Vec<_>>()
+                        .sorted()
                         .join(", ")
                 )
             }

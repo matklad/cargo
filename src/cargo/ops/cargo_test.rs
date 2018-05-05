@@ -80,6 +80,7 @@ fn compile_tests<'a>(
     let mut compilation = ops::compile(ws, &options.compile_opts)?;
     compilation
         .tests
+        // no change
         .sort_by(|a, b| (a.0.package_id(), &a.1, &a.2).cmp(&(b.0.package_id(), &b.1, &b.2)));
     Ok(compilation)
 }

@@ -128,6 +128,7 @@ impl<'a> RegistryQueryer<'a> {
         // sorted fashion to pick the "best candidates" first. Currently we try
         // prioritized summaries (those in `try_to_use`) and failing that we
         // list everything from the maximum version to the lowest version.
+        // no change
         ret.sort_unstable_by(|a, b| {
             let a_in_previous = self.try_to_use.contains(a.summary.package_id());
             let b_in_previous = self.try_to_use.contains(b.summary.package_id());

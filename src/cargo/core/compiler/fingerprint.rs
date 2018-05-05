@@ -447,8 +447,7 @@ fn calculate<'a, 'cfg>(
         let fingerprint = pkg_fingerprint(&cx.bcx, unit.pkg)?;
         LocalFingerprint::Precalculated(fingerprint)
     };
-    let mut deps = deps;
-    deps.sort_by(|&(ref a, _, _), &(ref b, _, _)| a.cmp(b));
+    let deps = deps.sorted_by(|&(ref a, _, _), &(ref b, _, _)| a.cmp(b));
     let extra_flags = if unit.mode.is_doc() {
         bcx.rustdocflags_args(unit)?
     } else {

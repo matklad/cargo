@@ -414,14 +414,12 @@ fn compute_metadata<'a, 'cfg>(
         .hash(&mut hasher);
 
     // Mix in the target-metadata of all the dependencies of this target
-    {
-        let mut deps_metadata = cx.dep_targets(unit)
-            .iter()
-            .map(|dep| metadata_of(dep, cx, metas))
-            .collect::<Vec<_>>();
-        deps_metadata.sort();
-        deps_metadata.hash(&mut hasher);
-    }
+    cx.dep_targets(unit)
+        .iter()
+        .map(|dep| metadata_of(dep, cx, metas))
+        .collect::<Vec<_>>()
+        .sorted()
+        .hash(&mut hasher);
 
     // Throw in the profile we're compiling with. This helps caching
     // panic=abort and panic=unwind artifacts, additionally with various

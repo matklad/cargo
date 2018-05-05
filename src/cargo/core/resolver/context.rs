@@ -111,19 +111,17 @@ impl Context {
 
         // Next, transform all dependencies into a list of possible candidates
         // which can satisfy that dependency.
-        let mut deps = deps.into_iter()
+        let deps = deps.into_iter()
             .map(|(dep, features)| {
                 let candidates = registry.query(&dep)?;
                 Ok((dep, candidates, Rc::new(features)))
             })
-            .collect::<CargoResult<Vec<DepInfo>>>()?;
-
-        // Attempt to resolve dependencies with fewer candidates before trying
-        // dependencies with more candidates.  This way if the dependency with
-        // only one candidate can't be resolved we don't have to do a bunch of
-        // work before we figure that out.
-        deps.sort_by_key(|&(_, ref a, _)| a.len());
-
+            .collect::<CargoResult<Vec<DepInfo>>>()?
+            // Attempt to resolve dependencies with fewer candidates before trying
+            // dependencies with more candidates.  This way if the dependency with
+            // only one candidate can't be resolved we don't have to do a bunch of
+            // work before we figure that out.
+            .sorted_by_key(|&(_, ref a, _)| a.len());
         Ok(deps)
     }
 

@@ -198,6 +198,7 @@ impl TargetConfig {
             for (k, value) in value.table(&lib_name)?.0 {
                 pairs.push((k, value));
             }
+            // no change
             pairs.sort_by_key(|p| p.0);
             for (k, value) in pairs {
                 let key = format!("{}.{}", key, k);
