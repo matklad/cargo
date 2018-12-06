@@ -149,12 +149,20 @@ impl<'a, 'cfg: 'a> CompilationFiles<'a, 'cfg> {
     /// Returns the directories where Rust crate dependencies are found for the
     /// specified unit.
     pub fn deps_dir(&self, unit: &Unit) -> &Path {
-        self.layout(unit.kind).deps()
+        if unit.pkg.summary().source_id().to_string().contains("crates.io-index") {
+            self.layout(unit.kind).crates_io_deps()
+        } else {
+            self.layout(unit.kind).deps()
+        }
     }
 
     pub fn fingerprint_dir(&self, unit: &Unit<'a>) -> PathBuf {
         let dir = self.pkg_dir(unit);
-        self.layout(unit.kind).fingerprint().join(dir)
+        if unit.pkg.summary().source_id().to_string().contains("crates.io-index") {
+            self.layout(unit.kind).crates_io_fingerprint().join(dir)
+        } else {
+            self.layout(unit.kind).fingerprint().join(dir)
+        }
     }
 
     /// Returns the appropriate directory layout for either a plugin or not.

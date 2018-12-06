@@ -919,6 +919,11 @@ fn build_deps_args<'a, 'cfg>(
         deps.push(cx.files().deps_dir(unit));
         deps
     });
+    cmd.arg("-L").arg(&{
+        let mut deps = OsString::from("dependency=");
+        deps.push(cx.files().deps_dir(unit).join("crates-io"));
+        deps
+    });
 
     // Be sure that the host path is also listed. This'll ensure that proc-macro
     // dependencies are correctly found (for reexported macros).

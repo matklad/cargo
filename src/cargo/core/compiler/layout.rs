@@ -62,10 +62,12 @@ use util::{CargoResult, Config, FileLock, Filesystem};
 pub struct Layout {
     root: PathBuf,
     deps: PathBuf,
+    crates_io_deps: PathBuf,
     native: PathBuf,
     build: PathBuf,
     incremental: PathBuf,
     fingerprint: PathBuf,
+    crates_io_fingerprint: PathBuf,
     examples: PathBuf,
     /// The lockfile for a build, will be unlocked when this struct is `drop`ped.
     _lock: FileLock,
@@ -117,10 +119,12 @@ impl Layout {
 
         Ok(Layout {
             deps: root.join("deps"),
+            crates_io_deps: root.join("deps").join("crates-io"),
             native: root.join("native"),
             build: root.join("build"),
             incremental: root.join("incremental"),
             fingerprint: root.join(".fingerprint"),
+            crates_io_fingerprint: root.join(".fingerprint").join("crates-io"),
             examples: root.join("examples"),
             root,
             _lock: lock,
@@ -165,9 +169,11 @@ impl Layout {
         self.exclude_from_backups(&self.root);
 
         mkdir(&self.deps)?;
+        mkdir(&self.crates_io_deps)?;
         mkdir(&self.native)?;
         mkdir(&self.incremental)?;
         mkdir(&self.fingerprint)?;
+        mkdir(&self.crates_io_fingerprint)?;
         mkdir(&self.examples)?;
         mkdir(&self.build)?;
 
@@ -189,6 +195,10 @@ impl Layout {
     pub fn deps(&self) -> &Path {
         &self.deps
     }
+    /// Fetch the deps path.
+    pub fn crates_io_deps(&self) -> &Path {
+        &self.crates_io_deps
+    }
     /// Fetch the examples path.
     pub fn examples(&self) -> &Path {
         &self.examples
@@ -204,6 +214,10 @@ impl Layout {
     /// Fetch the fingerprint path.
     pub fn fingerprint(&self) -> &Path {
         &self.fingerprint
+    }
+    /// Fetch the fingerprint path.
+    pub fn crates_io_fingerprint(&self) -> &Path {
+        &self.crates_io_fingerprint
     }
     /// Fetch the build path.
     pub fn build(&self) -> &Path {
